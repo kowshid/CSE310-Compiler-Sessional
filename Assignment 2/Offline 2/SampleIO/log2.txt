@@ -1,0 +1,27 @@
+
+Line No. 1: Token <COMMENT> Lexeme /* this input contains error, you program should
+detect the errors given here */ found
+
+Error at line 4: Too many decimal point 1..2.3 
+
+Error at line 5: Ill formed number 1E10.7.8E1 
+
+Error at line 6: Ill formed character 'ab'
+
+Error at line 7: Unterminated character 'a
+
+Error at line 8: Unterminated character '
+
+Error at line 9: Unterminated String "abc
+
+Error at line 12: Unterminated String "abcdefff
+
+Line No. 14: Token <ID> Lexeme xy found
+24 --> <xy,ID>
+
+Error at line 17: Unterminated comment /*adada
+dakdha
+
+Total Lines: 17
+
+Total Errors: 8
