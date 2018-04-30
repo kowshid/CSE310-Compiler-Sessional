@@ -1,0 +1,152 @@
+I
+I foo FUNCTION
+Not Found
+Inserted in ScopeTable #1 at position 2
+
+I
+I i VAR
+Not Found
+Inserted in ScopeTable #1 at position 3
+
+L
+L foo
+Found in ScopeTable #1 at position 2
+
+L
+L j
+Not Found
+
+I
+I 5 NUMBER
+Not Found
+Inserted in ScopeTable #1 at position 1
+
+P
+A
+ScopeTable #1
+0: < >
+1: <5 NUMBER>< >
+2: <foo FUNCTION>< >
+3: <i VAR>< >
+4: < >
+5: < >
+6: < >
+
+
+D
+D j
+Not Found
+Can't be deleted
+
+D
+D i
+Found in ScopeTable #1 at position 3
+Deleted
+
+P
+A
+ScopeTable #1
+0: < >
+1: <5 NUMBER>< >
+2: <foo FUNCTION>< >
+3: 
+4: < >
+5: < >
+6: < >
+
+
+S
+New ScopeTable with id 2 created
+
+I
+I <= RELOP
+Not Found
+Inserted in ScopeTable #2 at position 3
+
+I
+I == RELOP
+Not Found
+Inserted in ScopeTable #2 at position 5
+
+P
+A
+ScopeTable #2
+0: < >
+1: < >
+2: < >
+3: <<= RELOP>< >
+4: < >
+5: <== RELOP>< >
+6: < >
+
+ScopeTable #1
+0: < >
+1: <5 NUMBER>< >
+2: <foo FUNCTION>< >
+3: 
+4: < >
+5: < >
+6: < >
+
+
+I
+I <= RELOP
+Found in ScopeTable #2 at position 3
+Already Exists
+
+I
+I foo FUNCTION
+Not Found
+Inserted in ScopeTable #2 at position 2
+
+D
+D ==
+Found in ScopeTable #2 at position 5
+Deleted
+
+P
+A
+ScopeTable #2
+0: < >
+1: < >
+2: <foo FUNCTION>< >
+3: <<= RELOP>< >
+4: < >
+5: 
+6: < >
+
+ScopeTable #1
+0: < >
+1: <5 NUMBER>< >
+2: <foo FUNCTION>< >
+3: 
+4: < >
+5: < >
+6: < >
+
+
+E
+ScopeTable with id 2 deleted
+
+I
+I t t
+Not Found
+Inserted in ScopeTable #1 at position 1
+
+I
+I k k
+Not Found
+Inserted in ScopeTable #1 at position 5
+
+P
+A
+ScopeTable #1
+0: < >
+1: <t t><5 NUMBER>< >
+2: <foo FUNCTION>< >
+3: 
+4: < >
+5: <k k>< >
+6: < >
+
+
