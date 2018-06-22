@@ -8,7 +8,7 @@
 #include "y.tab.h"
 
 int line_count = 1;
-extern int error_count = 0;
+extern int error_count;
 
 extern FILE *error_out;
 
@@ -87,7 +87,7 @@ COMMENT_ERROR "/*"([^*]|\*+[^/*])*
 \n 		{line_count++;}
 
 {COMMENT_1}|{COMMENT_2} {
-			return COMMENT;
+			//return COMMENT;
 		}
 
 ['][']		{
@@ -178,10 +178,12 @@ COMMENT_ERROR "/*"([^*]|\*+[^/*])*
 
 		}	
 
-"++"|"--"    	{
-			SymbolInfo *temp = new SymbolInfo(yytext, "INCOP");
-			yylval.var = temp;
+"++" {
 			return INCOP;
+		} 
+
+"--" {
+			return DECOP;
 		} 
 
 "<"|"<="|">"|">="|"=="|"!=" {
@@ -208,7 +210,7 @@ COMMENT_ERROR "/*"([^*]|\*+[^/*])*
 
 			
 "!"		{
-			return NOTOP;
+			return NOT;
 		}
 
 "("		{	
@@ -274,7 +276,7 @@ COMMENT_ERROR "/*"([^*]|\*+[^/*])*
 {STRING}	{
 			SymbolInfo *temp = new SymbolInfo(yytext, "STRING");
 			yylval.var = temp;
-			return STRING;	
+			//return STRING;	
 		}
 
 {FLOAT_ERROR_1} {
@@ -320,4 +322,3 @@ COMMENT_ERROR "/*"([^*]|\*+[^/*])*
 		}
 
 %%
-
