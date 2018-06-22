@@ -51,50 +51,107 @@ void yyerror(char *s)
 start : program
 	{
 		fprintf(log_out,"line no. %d: start : program\n\n",line_count);
+
+		SymbolInfo *temp = new SymbolInfo($1->getName(), "start");
+		$$ = temp;
+
+		fprintf(log_out, "%s\n\n", $$->getName().c_str());
 	}
 	;
 
 program : program unit 
 	{
 		fprintf(log_out,"line no. %d: program : program unit\n\n",line_count);
+
+		$$->setName($$->getName() + ", " + $2->getName());
+
+		fprintf(log_out, "%s\n\n", $$->getName().c_str());
 	} 
 	| unit 
 	{
 		fprintf(log_out,"line no. %d: program : unit\n\n",line_count);
+
+		SymbolInfo *temp = new SymbolInfo($1->getName(), "program");
+		$$ = temp;
+
+		fprintf(log_out, "%s\n\n", $$->getName().c_str());
 	}
 	;
 	
 unit : var_declaration 
 	{
 		fprintf(log_out,"line no. %d: unit: var_declaration\n\n",line_count);
+
+		SymbolInfo *temp = new SymbolInfo($1->getName(), "unit");
+		$$ = temp;
+
+		fprintf(log_out, "%s\n\n", $$->getName().c_str());
 	}
     | func_declaration 
     {
      	fprintf(log_out,"line no. %d: unit: func_declaration\n\n",line_count);
+
+     	SymbolInfo *temp = new SymbolInfo($1->getName(), "unit");
+		$$ = temp;
+
+		fprintf(log_out, "%s\n\n", $$->getName().c_str());
     }
     | func_definition 
     {
      	fprintf(log_out,"line no. %d: unit: func_definition\n\n",line_count);
+
+     	SymbolInfo *temp = new SymbolInfo($1->getName(), "unit");
+		$$ = temp;
+
+		fprintf(log_out, "%s\n\n", $$->getName().c_str());
     }
     ;
      
 func_declaration : type_specifier ID LPAREN parameter_list RPAREN SEMICOLON 
 	{
 		fprintf(log_out,"line no. %d: func_declaration : type_specifier ID LPAREN parameter_list RPAREN SEMICOLON\n\n",line_count);
+		
+		string line = $1->getName() + $2->getName() + "(" + $4->getName() + ");";
+
+		SymbolInfo *temp = new SymbolInfo(line, "func_declaration");
+		$$ = temp;
+
+		fprintf(log_out, "%s\n\n", $$->getName().c_str());
 	}
 	| type_specifier ID LPAREN RPAREN SEMICOLON 
 	{
 		fprintf(log_out,"line no. %d: func_declaration : type_specifier ID LPAREN RPAREN SEMICOLON\n\n",line_count);
+	
+		string line = $1->getName() + $2->getName() + "();";
+
+		SymbolInfo *temp = new SymbolInfo(line, "func_declaration");
+		$$ = temp;
+
+		fprintf(log_out, "%s\n\n", $$->getName().c_str());
 	}
 	;
 		 
 func_definition : type_specifier ID LPAREN parameter_list RPAREN compound_statement 
 	{
 		fprintf(log_out,"line no. %d: func_definition : type_specifier ID LPAREN parameter_list RPAREN compound_statement \n\n",line_count);
+
+		string line = $1->getName() + $2->getName() + "(" + $4->getName() + ")" + $6->getName();
+
+		SymbolInfo *temp = new SymbolInfo(line, "func_definition");
+		$$ = temp;
+
+		fprintf(log_out, "%s\n\n", $$->getName().c_str());
 	}
 	| type_specifier ID LPAREN RPAREN compound_statement 
 	{
 		fprintf(log_out,"line no. %d: func_definition : type_specifier ID LPAREN RPAREN compound_statement\n\n",line_count);
+	
+		string line = $1->getName() + $2->getName() + "()" + $5->getName();
+
+		SymbolInfo *temp = new SymbolInfo(line, "func_definition");
+		$$ = temp;
+
+		fprintf(log_out, "%s\n\n", $$->getName().c_str());
 	}
  	;				
 
@@ -102,18 +159,41 @@ func_definition : type_specifier ID LPAREN parameter_list RPAREN compound_statem
 parameter_list : parameter_list COMMA type_specifier ID 
 	{
 		fprintf(log_out,"line no. %d: parameter_list : parameter_list COMMA type_specifier ID\n\n",line_count);
+
+		string line = $1->getName() + ", " + $3->getName() + $4->getName();
+
+		SymbolInfo *temp = new SymbolInfo(line, "parameter_list");
+		$$ = temp;
+
+		fprintf(log_out, "%s\n\n", $$->getName().c_str());
 	}
 	| parameter_list COMMA type_specifier 
 	{
 		fprintf(log_out,"line no. %d: parameter_list : parameter_list COMMA type_specifier\n\n",line_count);
+	
+		string line = $1->getName() + ", " + $3->getName();
+
+		SymbolInfo *temp = new SymbolInfo(line, "parameter_list");
+		$$ = temp;
+
+		fprintf(log_out, "%s\n\n", $$->getName().c_str());
 	}
  	| type_specifier ID 
  	{
 		fprintf(log_out,"line no. %d: parameter_list : type_specifier ID\n\n",line_count);
+
+		$$->setName($$->getName() + $2->getName());
+
+		fprintf(log_out, "%s\n\n", $$->getName().c_str());
 	}
 	| type_specifier 
 	{
 		fprintf(log_out,"line no. %d: parameter_list : type_specifier\n\n",line_count);
+
+		SymbolInfo *temp = new SymbolInfo($1->getName(), "parameter_list");
+		$$ = temp;
+
+		fprintf(log_out, "%s\n\n", $$->getName().c_str());
 	}
  	;
 
@@ -121,16 +201,31 @@ parameter_list : parameter_list COMMA type_specifier ID
 compound_statement : LCURL statements RCURL 
 	{
 		fprintf(log_out,"line no. %d: compound_statement : LCURL statements RCURL\n\n",line_count);
+
+		SymbolInfo *temp = new SymbolInfo("{" + $2->getName() + "}", "parameter_list");
+		$$ = temp;
+
+		fprintf(log_out, "%s\n\n", $$->getName().c_str());
 	}
  	| LCURL RCURL 
  	{
 		fprintf(log_out,"line no. %d: compound_statement : LCURL RCURL\n\n",line_count);
+
+		SymbolInfo *temp = new SymbolInfo("{}", "parameter_list");
+		$$ = temp;
+
+		fprintf(log_out, "%s\n\n", $$->getName().c_str());
 	}
  	;
  		    
 var_declaration : type_specifier declaration_list SEMICOLON
 	{
 		fprintf(log_out,"line no. %d: var_declaration : type_specifier declaration_list SEMICOLON\n\n",line_count);
+	
+		SymbolInfo *temp = new SymbolInfo($1->getName() + $2->getName() + ";", "parameter_list");
+		$$ = temp;
+
+		fprintf(log_out, "%s\n\n", $$->getName().c_str());
 	}
  	;
  		 
@@ -486,10 +581,20 @@ factor	: variable
 	| ID LPAREN argument_list RPAREN
 	{
 		fprintf(log_out,"line no. %d: factor : ID LPAREN argument_list RPAREN\n\n",line_count);
+
+		SymbolInfo *temp = new SymbolInfo($1->getName(), "factor");
+		$$ = temp;
+
+		fprintf(log_out, "%s\n\n", $$->getName().c_str());
 	}
 	| LPAREN expression RPAREN
 	{
 		fprintf(log_out,"line no. %d: factor : LPAREN expression RPAREN\n\n",line_count);
+
+		SymbolInfo *temp = new SymbolInfo("(" + $2->getName() + ")", "factor");
+		$$ = temp;
+
+		fprintf(log_out, "%s\n\n", $$->getName().c_str());
 	}
 	| CONST_INT
 	{
@@ -512,10 +617,20 @@ factor	: variable
 	| variable INCOP 
 	{
 		fprintf(log_out,"line no. %d: factor : variable INCOP \n\n",line_count);
+
+		SymbolInfo *temp = new SymbolInfo($1->getName() + "++", "factor");
+		$$ = temp;
+
+		fprintf(log_out, "%s\n\n", $$->getName().c_str());
 	}
 	| variable DECOP
 	{
 		fprintf(log_out,"line no. %d: factor : variable DECOP \n\n",line_count);
+
+		SymbolInfo *temp = new SymbolInfo($1->getName() + "--", "factor");
+		$$ = temp;
+
+		fprintf(log_out, "%s\n\n", $$->getName().c_str());
 	}
 	;
 	
@@ -534,6 +649,11 @@ argument_list : arguments
 arguments : arguments COMMA logic_expression
 	{
 		fprintf(log_out,"line no. %d: arguments : arguments COMMA logic_expression \n\n",line_count);
+
+		SymbolInfo *temp = new SymbolInfo($1->getName() + ", " + $3->getName(), "arguments");
+		$$ = temp;
+
+		fprintf(log_out, "%s\n\n", $$->getName().c_str());
 	}
 	| logic_expression
 	{
@@ -572,5 +692,3 @@ int main(int argc,char *argv[])
 	
 	return 0;
 }
-
-+
