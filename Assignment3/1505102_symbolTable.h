@@ -9,6 +9,7 @@ class SymbolInfo
 {
     string name;
     string type;
+    int sizeArr;
 
 public:
 
@@ -17,6 +18,7 @@ public:
     SymbolInfo()
     {
         nxt = NULL;
+        sizeArr = 0;
     }
 
     SymbolInfo(string noun, string kind)
@@ -24,6 +26,7 @@ public:
         name = noun;
         type = kind;
         nxt = NULL;
+        sizeArr = 0;
     }
 
     string getName()
@@ -36,6 +39,19 @@ public:
         return type;
     }
 
+    bool setSize(int sz)
+    {
+        sizeArr = sz;
+    }
+
+    int getSize(int sz)
+    {
+        return sizeArr;
+    }
+
+    void setName(string name){
+        this->name=name;
+    }
 };
 
 class ScopeTable
@@ -100,14 +116,14 @@ public:
         return (h % size);
     }
 
-    bool insert(string noun, string kind, FILE *f)
+    bool insert(string noun, string kind, int sz)
     {
         SymbolInfo *temp = new SymbolInfo(noun, kind);
         parent = lookUp(noun);
 
         if (parent != NULL)
         {
-            fprintf(f,"Already Exists\n");
+            //fprintf(f,"Already Exists\n");
             return false;
         }
 
@@ -115,17 +131,19 @@ public:
 
         if (arr[hashNo] == NULL)
         {
+            temp->setSize(sz);
             arr[hashNo] = temp;
             //cout << "Inserted in ScopeTable #" << id << " at position " << hashNo << endl;
-	    fprintf(f, "ScopeTable #%d\n", id);
+	        //fprintf(f, "ScopeTable #%d\n", id);
         }
 
         else
         {
+            temp->setSize(sz);
             temp->nxt = arr[hashNo];
             arr[hashNo] = temp;
             //cout << "Inserted in ScopeTable #" << id << " at position " << hashNo << endl;
-	    fprintf(f, "ScopeTable #%d\n", id);
+	        //fprintf(f, "ScopeTable #%d\n", id);
         }
 
         return true;
@@ -202,16 +220,18 @@ public:
         {
 	    if (arr[i] == NULL) continue;
             head = arr[i];
-	    fprintf(f,"%d : ",i);
+	        fprintf(f,"%d : ",i);
             while (head != 0)
             {
                 //cout << "<" << head->getName() << " " << head->getType() <<">";
-		fprintf(f, "< %s, %s >\n",head->getName().c_str(), head->getType().c_str());
-		head = head->nxt;
+		        fprintf(f, "< %s, %s >\n",head->getName().c_str(), head->getType().c_str());
+		        head = head->nxt;
             }
 
             cout << endl;
         }
+
+        fprintf(f,"\n");
     }
 };
 
@@ -246,9 +266,9 @@ public:
         {
             ScopeTable *temp = st;
             st = st->prevScope;
-            id--;
+            //id--;
             delete temp;
-	    //cout << "ScopeTable with id " << id + 1 << " deleted" << endl;
+	        cout << "ScopeTable with id " << id << " deleted" << endl;
         }
 
 	else
@@ -258,7 +278,7 @@ public:
 
     }
 
-    bool insertSymbol(string noun, string kind, FILE *f)
+    bool insertSymbol(string noun, string kind, int f)
     {
         return st->insert(noun, kind, f);
     }
@@ -284,6 +304,7 @@ public:
 
     void printCur(FILE *f)
     {
+        fprintf(f, "ScopeTable #%d\n\n", id);
         st->print(f);
     }
 
@@ -293,6 +314,7 @@ public:
 
         while(temp != 0)
         {
+            fprintf(f, "ScopeTable #%d\n\n", temp->getID());
             //cout << "ScopeTable #" << temp->getID() << endl;
             temp->print(f);
             //cout << endl;
