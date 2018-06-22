@@ -30,7 +30,6 @@ void yyerror(char *s)
 	SymbolInfo *var;
 }
 
-
 %token NOT IF ELSE FOR DO INT FLOAT VOID DEFAULT SWITCH WHILE BREAK CHAR DOUBLE RETURN CASE CONTINUE ASSIGNOP NOTOP LPAREN RPAREN LCURL RCURL LTHIRD RTHIRD COMMA SEMICOLON DECOP INCOP PRINTLN
 
 %token <var> COMMENT
@@ -45,7 +44,9 @@ void yyerror(char *s)
 %token <var> ID
 %token <var> STRING
 
-%type<var> type_specifier declaration_list
+%type <var> start program compound_statement type_specifier parameter_list declaration_list var_declaration unit func_declaration statement statements variable expression factor arguments argument_list expression_statement unary_expression simple_expression logic_expression rel_expression term func_definition 
+
+
 %%
 
 start : program
@@ -82,7 +83,7 @@ unit : var_declaration
 	{
 		fprintf(log_out,"line no. %d: unit: var_declaration\n\n",line_count);
 
-		SymbolInfo *temp = new SymbolInfo($1->getName(), "unit");
+		SymbolInfo *temp = new SymbolInfo('\n' + $1->getName(), "unit");
 		$$ = temp;
 
 		fprintf(log_out, "%s\n\n", $$->getName().c_str());
@@ -91,7 +92,7 @@ unit : var_declaration
     {
      	fprintf(log_out,"line no. %d: unit: func_declaration\n\n",line_count);
 
-     	SymbolInfo *temp = new SymbolInfo($1->getName(), "unit");
+     	SymbolInfo *temp = new SymbolInfo('\n' + $1->getName(), "unit");
 		$$ = temp;
 
 		fprintf(log_out, "%s\n\n", $$->getName().c_str());
@@ -100,7 +101,7 @@ unit : var_declaration
     {
      	fprintf(log_out,"line no. %d: unit: func_definition\n\n",line_count);
 
-     	SymbolInfo *temp = new SymbolInfo($1->getName(), "unit");
+     	SymbolInfo *temp = new SymbolInfo('\n' + $1->getName(), "unit");
 		$$ = temp;
 
 		fprintf(log_out, "%s\n\n", $$->getName().c_str());
@@ -202,7 +203,7 @@ compound_statement : LCURL statements RCURL
 	{
 		fprintf(log_out,"line no. %d: compound_statement : LCURL statements RCURL\n\n",line_count);
 
-		SymbolInfo *temp = new SymbolInfo("{" + $2->getName() + "}", "parameter_list");
+		SymbolInfo *temp = new SymbolInfo("{\n\t" + $2->getName() + "\n}", "parameter_list");
 		$$ = temp;
 
 		fprintf(log_out, "%s\n\n", $$->getName().c_str());
@@ -271,7 +272,7 @@ declaration_list : declaration_list COMMA ID
 	{
 		fprintf(log_out,"line no. %d: declaration_list : declaration_list COMMA ID LTHIRD CONST_INT RTHIRD\n\n",line_count);
 
-		$$->setName($$->getName() + ", ", + $3->getName() + "[" + $5->getName() + "]" );
+		$$->setName($$->getName() + ", " + $3->getName() + "[" + $5->getName() + "]" );
 
 		fprintf(log_out, "%s\n\n", $$->getName().c_str());
 	}
@@ -288,7 +289,9 @@ declaration_list : declaration_list COMMA ID
 	{
 		fprintf(log_out,"line no. %d: declaration_list : ID LTHIRD CONST_INT RTHIRD\n\n",line_count);
 
-		SymbolInfo *temp = new SymbolInfo($1-getName() + "[" + $3->getName() + "]", "declaration_list");
+		string line = $1->getName() + "[" + $3->getName() + "]";
+
+		SymbolInfo *temp = new SymbolInfo(line, "declaration_list");
 		$$ = temp;
 
 		fprintf(log_out,"%s\n\n", $$->getName().c_str());
@@ -318,7 +321,7 @@ statement : var_declaration
 	{
 		fprintf(log_out,"line no. %d: statement : var_declaration\n\n",line_count);
 
-		SymbolInfo *temp = new SymbolInfo($1->getName(), "statement")
+		SymbolInfo *temp = new SymbolInfo($1->getName(), "statement");
 		$$ = temp;
 
 		fprintf(log_out, "%s\n\n", $$->getName().c_str());
@@ -327,7 +330,7 @@ statement : var_declaration
 	{
 		fprintf(log_out,"line no. %d: statement : expression_statement\n\n",line_count);
 
-		SymbolInfo *temp = new SymbolInfo($1->getName(), "statement")
+		SymbolInfo *temp = new SymbolInfo($1->getName(), "statement");
 		$$ = temp;
 
 		fprintf(log_out, "%s\n\n", $$->getName().c_str());
@@ -336,7 +339,7 @@ statement : var_declaration
 	{
 		fprintf(log_out,"line no. %d: statement : compound_statement\n\n",line_count);
 
-		SymbolInfo *temp = new SymbolInfo($1->getName(), "statement")
+		SymbolInfo *temp = new SymbolInfo($1->getName(), "statement");
 		$$ = temp;
 
 		fprintf(log_out, "%s\n\n", $$->getName().c_str());
@@ -347,7 +350,7 @@ statement : var_declaration
 	
 		string line = "for (" + $3->getName() + $4->getName() + $5->getName() + ") " + $7->getName();
 
-		SymbolInfo *temp = new SymbolInfo(line, "statement")
+		SymbolInfo *temp = new SymbolInfo(line, "statement");
 		$$ = temp;
 
 		fprintf(log_out, "%s\n\n", $$->getName().c_str());
@@ -356,9 +359,9 @@ statement : var_declaration
 	{
 		fprintf(log_out,"line no. %d: statement : IF LPAREN expression RPAREN statement\n\n",line_count);
 	
-		string line = "if (" + $3->getName() + ") " $5->getName();
+		string line = "if (" + $3->getName() + ") " + $5->getName();
 
-		SymbolInfo *temp = new SymbolInfo(line, "statement")
+		SymbolInfo *temp = new SymbolInfo(line, "statement");
 		$$ = temp;
 
 		fprintf(log_out, "%s\n\n", $$->getName().c_str());
@@ -367,9 +370,9 @@ statement : var_declaration
 	{
 		fprintf(log_out,"line no. %d: statement : IF LPAREN expression RPAREN statement ELSE statement\n\n",line_count);
 	
-		string line = "if (" + $3->getName() + ") " $5->getName() + "else " $7->getName();
+		string line = "if (" + $3->getName() + ") " + $5->getName() + "else " + $7->getName();
 
-		SymbolInfo *temp = new SymbolInfo(line, "statement")
+		SymbolInfo *temp = new SymbolInfo(line, "statement");
 		$$ = temp;
 
 		fprintf(log_out, "%s\n\n", $$->getName().c_str());
@@ -380,7 +383,7 @@ statement : var_declaration
 	
 		string line = "while (" + $3->getName() + ") " + $5->getName();
 
-		SymbolInfo *temp = new SymbolInfo(line, "statement")
+		SymbolInfo *temp = new SymbolInfo(line, "statement");
 		$$ = temp;
 
 		fprintf(log_out, "%s\n\n", $$->getName().c_str());
@@ -553,7 +556,7 @@ unary_expression : ADDOP unary_expression
 	{
 		fprintf(log_out,"line no. %d: unary_expression : NOT unary_expression \n\n",line_count);
 
-		SymbolInfo *temp = new SymbolInfo($1->getName() + $2->getName(), "unary_expression");
+		SymbolInfo *temp = new SymbolInfo("!" + $2->getName(), "unary_expression");
 		$$ = temp;
 
 		fprintf(log_out, "%s\n\n", $$->getName().c_str());
