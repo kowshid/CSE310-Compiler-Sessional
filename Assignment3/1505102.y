@@ -68,7 +68,7 @@ program : program unit
 	{
 		fprintf(log_out,"line no. %d: program : program unit\n\n",line_count);
 
-		$$->setName($$->getName() + ", " + $2->getName());
+		$$->setName($$->getName() + $2->getName());
 
 		fprintf(log_out, "%s\n\n", $$->getName().c_str());
 	} 
@@ -124,7 +124,7 @@ func_declaration : type_specifier ID LPAREN parameter_list RPAREN SEMICOLON
 		fprintf(log_out, "%s\n\n", $$->getName().c_str());
 
 		table.insertSymbol($2->getName(), "ID", 0);
-		table.printCur(log_out);
+		//table.printCur(log_out);
 	}
 	| type_specifier ID LPAREN RPAREN SEMICOLON 
 	{
@@ -138,7 +138,7 @@ func_declaration : type_specifier ID LPAREN parameter_list RPAREN SEMICOLON
 		fprintf(log_out, "%s\n\n", $$->getName().c_str());
 
 		table.insertSymbol($2->getName(), "ID", 0);
-		table.printCur(log_out);
+		//table.printCur(log_out);
 	}
 	;
 		 
@@ -153,8 +153,17 @@ func_definition : type_specifier ID LPAREN parameter_list RPAREN {table.enterSco
 
 		fprintf(log_out, "%s\n\n", $$->getName().c_str());
 
-		table.printCur();
+		table.printCur(log_out);
 		table.removeScope();
+
+		SymbolInfo *temp2 = table.srch($2->getName());
+
+		if(temp2 == NULL)
+		{
+			table.insertSymbol($2->getName(), "ID", 0);
+		}
+
+		table.printAll(log_out);
 	}
 	| type_specifier ID LPAREN RPAREN {table.enterScope();} compound_statement 
 	{
@@ -167,8 +176,9 @@ func_definition : type_specifier ID LPAREN parameter_list RPAREN {table.enterSco
 
 		fprintf(log_out, "%s\n\n", $$->getName().c_str());
 
-		table.printCur();
+		table.printCur(log_out);
 		table.removeScope();
+		table.printAll(log_out);
 	}
  	;				
 
@@ -219,7 +229,7 @@ compound_statement : LCURL statements RCURL
 	{
 		fprintf(log_out,"line no. %d: compound_statement : LCURL statements RCURL\n\n",line_count);
 
-		SymbolInfo *temp = new SymbolInfo("{\n\t" + $2->getName() + "\n}", "parameter_list");
+		SymbolInfo *temp = new SymbolInfo("{\n" + $2->getName() + "\n}", "parameter_list");
 		$$ = temp;
 
 		fprintf(log_out, "%s\n\n", $$->getName().c_str());
@@ -285,7 +295,7 @@ declaration_list : declaration_list COMMA ID
 
 		table.insertSymbol($3->getName(), "ID", 0);
 
-		table.printCur(log_out);
+		//table.printCur(log_out);
 	}
  	| declaration_list COMMA ID LTHIRD CONST_INT RTHIRD
 	{
@@ -299,7 +309,7 @@ declaration_list : declaration_list COMMA ID
 
 		table.insertSymbol($3->getName(), "ID", number);
 
-		table.printCur(log_out);
+		//table.printCur(log_out);
 	}
  	| ID
 	{
@@ -312,7 +322,7 @@ declaration_list : declaration_list COMMA ID
 
 		table.insertSymbol($1->getName(), "ID", 0);
 
-		table.printCur(log_out);
+		//table.printCur(log_out);
 	}
  	| ID LTHIRD CONST_INT RTHIRD
 	{
@@ -328,7 +338,7 @@ declaration_list : declaration_list COMMA ID
 		int number=atoi($3->getName().c_str());
 		table.insertSymbol($1->getName(), "ID", number);
 
-		table.printCur(log_out);
+		//table.printCur(log_out);
 	}
  	;
  		  
@@ -355,7 +365,7 @@ statement : var_declaration
 	{
 		fprintf(log_out,"line no. %d: statement : var_declaration\n\n",line_count);
 
-		SymbolInfo *temp = new SymbolInfo($1->getName(), "statement");
+		SymbolInfo *temp = new SymbolInfo($1->getName() + '\n', "statement");
 		$$ = temp;
 
 		fprintf(log_out, "%s\n\n", $$->getName().c_str());
@@ -364,7 +374,7 @@ statement : var_declaration
 	{
 		fprintf(log_out,"line no. %d: statement : expression_statement\n\n",line_count);
 
-		SymbolInfo *temp = new SymbolInfo($1->getName(), "statement");
+		SymbolInfo *temp = new SymbolInfo($1->getName()+ '\n', "statement");
 		$$ = temp;
 
 		fprintf(log_out, "%s\n\n", $$->getName().c_str());
@@ -373,7 +383,7 @@ statement : var_declaration
 	{
 		fprintf(log_out,"line no. %d: statement : compound_statement\n\n",line_count);
 
-		SymbolInfo *temp = new SymbolInfo($1->getName(), "statement");
+		SymbolInfo *temp = new SymbolInfo($1->getName() + '\n', "statement");
 		$$ = temp;
 
 		fprintf(log_out, "%s\n\n", $$->getName().c_str());
@@ -389,7 +399,7 @@ statement : var_declaration
 
 		fprintf(log_out, "%s\n\n", $$->getName().c_str());
 	}
-	| IF LPAREN expression RPAREN statement %prec LOWER_THAN_ELSE;
+	| IF LPAREN expression RPAREN statement 		%prec LOWER_THAN_ELSE
 	{
 		fprintf(log_out,"line no. %d: statement : IF LPAREN expression RPAREN statement\n\n",line_count);
 	
@@ -723,6 +733,10 @@ int main(int argc,char *argv[])
 	error_out= fopen(argv[3],"a");
 	
 	yyparse();
+
+	table.printAll(log_out);
+	fprintf(log_out,"total lines: %d\n",line_count);
+	fprintf(log_out,"total errors encountered: %d\n",error_count);
 	
 	fclose(log_out);
 	fclose(error_out);
