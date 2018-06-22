@@ -9,6 +9,7 @@ using namespace std;
 
 int yyparse(void);
 int yylex(void);
+int error_count;
 extern FILE *yyin;
 
 extern int line_count;
@@ -20,7 +21,8 @@ SymbolTable table(99);
 
 void yyerror(char *s)
 {
-	//write your code
+	error_count++;
+	fprintf(error_out, "line no. %d: Error no. %d found\n%s\n", line_count, error_count, s);
 }
 
 %}
@@ -46,6 +48,8 @@ void yyerror(char *s)
 
 %type <var> start program compound_statement type_specifier parameter_list declaration_list var_declaration unit func_declaration statement statements variable expression factor arguments argument_list expression_statement unary_expression simple_expression logic_expression rel_expression term func_definition 
 
+%nonassoc LOWER_THAN_ELSE
+%nonassoc ELSE
 
 %%
 
@@ -118,6 +122,9 @@ func_declaration : type_specifier ID LPAREN parameter_list RPAREN SEMICOLON
 		$$ = temp;
 
 		fprintf(log_out, "%s\n\n", $$->getName().c_str());
+
+		table.insertSymbol($2->getName(), "ID", 0);
+		table.printCur(log_out);
 	}
 	| type_specifier ID LPAREN RPAREN SEMICOLON 
 	{
@@ -129,30 +136,39 @@ func_declaration : type_specifier ID LPAREN parameter_list RPAREN SEMICOLON
 		$$ = temp;
 
 		fprintf(log_out, "%s\n\n", $$->getName().c_str());
+
+		table.insertSymbol($2->getName(), "ID", 0);
+		table.printCur(log_out);
 	}
 	;
 		 
-func_definition : type_specifier ID LPAREN parameter_list RPAREN compound_statement 
+func_definition : type_specifier ID LPAREN parameter_list RPAREN {table.enterScope();} compound_statement 
 	{
 		fprintf(log_out,"line no. %d: func_definition : type_specifier ID LPAREN parameter_list RPAREN compound_statement \n\n",line_count);
 
-		string line = $1->getName() + $2->getName() + "(" + $4->getName() + ")" + $6->getName();
+		string line = $1->getName() + $2->getName() + "(" + $4->getName() + ")" + $7->getName();
 
 		SymbolInfo *temp = new SymbolInfo(line, "func_definition");
 		$$ = temp;
 
 		fprintf(log_out, "%s\n\n", $$->getName().c_str());
+
+		table.printCur();
+		table.removeScope();
 	}
-	| type_specifier ID LPAREN RPAREN compound_statement 
+	| type_specifier ID LPAREN RPAREN {table.enterScope();} compound_statement 
 	{
 		fprintf(log_out,"line no. %d: func_definition : type_specifier ID LPAREN RPAREN compound_statement\n\n",line_count);
 	
-		string line = $1->getName() + $2->getName() + "()" + $5->getName();
+		string line = $1->getName() + $2->getName() + "()" + $6->getName();
 
 		SymbolInfo *temp = new SymbolInfo(line, "func_definition");
 		$$ = temp;
 
 		fprintf(log_out, "%s\n\n", $$->getName().c_str());
+
+		table.printCur();
+		table.removeScope();
 	}
  	;				
 
@@ -267,6 +283,9 @@ declaration_list : declaration_list COMMA ID
 
 		fprintf(log_out,"%s\n\n", $$->getName().c_str());
 
+		table.insertSymbol($3->getName(), "ID", 0);
+
+		table.printCur(log_out);
 	}
  	| declaration_list COMMA ID LTHIRD CONST_INT RTHIRD
 	{
@@ -275,6 +294,12 @@ declaration_list : declaration_list COMMA ID
 		$$->setName($$->getName() + ", " + $3->getName() + "[" + $5->getName() + "]" );
 
 		fprintf(log_out, "%s\n\n", $$->getName().c_str());
+
+		int number = atoi($5->getName().c_str());
+
+		table.insertSymbol($3->getName(), "ID", number);
+
+		table.printCur(log_out);
 	}
  	| ID
 	{
@@ -284,6 +309,10 @@ declaration_list : declaration_list COMMA ID
 		$$ = temp;
 
 		fprintf(log_out,"%s\n\n", $$->getName().c_str());
+
+		table.insertSymbol($1->getName(), "ID", 0);
+
+		table.printCur(log_out);
 	}
  	| ID LTHIRD CONST_INT RTHIRD
 	{
@@ -295,6 +324,11 @@ declaration_list : declaration_list COMMA ID
 		$$ = temp;
 
 		fprintf(log_out,"%s\n\n", $$->getName().c_str());
+
+		int number=atoi($3->getName().c_str());
+		table.insertSymbol($1->getName(), "ID", number);
+
+		table.printCur(log_out);
 	}
  	;
  		  
@@ -355,7 +389,7 @@ statement : var_declaration
 
 		fprintf(log_out, "%s\n\n", $$->getName().c_str());
 	}
-	| IF LPAREN expression RPAREN statement
+	| IF LPAREN expression RPAREN statement %prec LOWER_THAN_ELSE;
 	{
 		fprintf(log_out,"line no. %d: statement : IF LPAREN expression RPAREN statement\n\n",line_count);
 	
