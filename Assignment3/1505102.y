@@ -31,7 +31,8 @@ void yyerror(char *s)
 %}
 
 
-%union {
+%union 
+{
 	SymbolInfo *var;
 }
 
