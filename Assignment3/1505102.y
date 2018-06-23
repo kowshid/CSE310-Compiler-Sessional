@@ -30,7 +30,6 @@ void yyerror(char *s)
 
 %}
 
-
 %union 
 {
 	SymbolInfo *var;
@@ -127,7 +126,14 @@ func_declaration : type_specifier ID LPAREN parameter_list RPAREN SEMICOLON
 
 		fprintf(log_out, "%s\n\n", $$->getName().c_str());
 
-		table.insertSymbol($2->getName(), "ID", 0);
+		check = table.insertSymbol($2->getName(), "ID", 0);
+
+		if (check == false)
+		{
+			error_count++;
+			fprintf(error_out, "Error no. %d at line no. %d\nAlready Exists\n\n", error_count, line_count);
+		}
+
 		//table.printCur(log_out);
 	}
 	| type_specifier ID LPAREN RPAREN SEMICOLON 
@@ -141,7 +147,13 @@ func_declaration : type_specifier ID LPAREN parameter_list RPAREN SEMICOLON
 
 		fprintf(log_out, "%s\n\n", $$->getName().c_str());
 
-		table.insertSymbol($2->getName(), "ID", 0);
+		check = table.insertSymbol($2->getName(), "ID", 0);
+
+		if (check == false)
+		{
+			error_count++;
+			fprintf(error_out, "Error no. %d at line no. %d\nAlready Exists\n\n", error_count, line_count);
+		}
 		//table.printCur(log_out);
 	}
 	;
@@ -303,7 +315,13 @@ declaration_list : declaration_list COMMA ID
 
 		fprintf(log_out,"%s\n\n", $$->getName().c_str());
 
-		table.insertSymbol($3->getName(), "ID", 0);
+		check = table.insertSymbol($3->getName(), "ID", 0);
+
+		if (check == false)
+		{
+			error_count++;
+			fprintf(error_out, "Error no. %d at line no. %d\nAlready Exists\n\n", error_count, line_count);
+		}
 
 		SymbolInfo *sInfo = table.srch($3->getName());
 		if(variableType != "void")
@@ -329,7 +347,13 @@ declaration_list : declaration_list COMMA ID
 
 		int number = atoi($5->getName().c_str());
 
-		table.insertSymbol($3->getName(), "ID", number);
+		check = table.insertSymbol($3->getName(), "ID", number);
+
+		if (check == false)
+		{
+			error_count++;
+			fprintf(error_out, "Error no. %d at line no. %d\nAlready Exists\n\n", error_count, line_count);
+		}
 
 		//table.printCur(log_out);
 
@@ -355,7 +379,13 @@ declaration_list : declaration_list COMMA ID
 
 		fprintf(log_out,"%s\n\n", $$->getName().c_str());
 
-		table.insertSymbol($1->getName(), "ID", 0);
+		check = table.insertSymbol($1->getName(), "ID", 0);
+
+		if (check == false)
+		{
+			error_count++;
+			fprintf(error_out, "Error no. %d at line no. %d\nAlready Exists\n\n", error_count, line_count);
+		}
 
 		SymbolInfo *sInfo = table.srch($1->getName());
 	
@@ -385,7 +415,14 @@ declaration_list : declaration_list COMMA ID
 		fprintf(log_out,"%s\n\n", $$->getName().c_str());
 
 		int number=atoi($3->getName().c_str());
-		table.insertSymbol($1->getName(), "ID", number);
+		
+		check = table.insertSymbol($1->getName(), "ID", number);
+
+		if (check == false)
+		{
+			error_count++;
+			fprintf(error_out, "Error no. %d at line no. %d\nAlready Exists\n\n", error_count, line_count);
+		}
 
 		SymbolInfo *sInfo = table.srch($1->getName());
 		if(variableType != "void")
@@ -669,7 +706,7 @@ simple_expression : term
 	}
     ;
 					
-term :	unary_expression
+term : unary_expression
 	{
 		fprintf(log_out,"line no. %d: term : unary_expression\n\n",line_count);
 
@@ -824,7 +861,7 @@ argument_list : arguments
 
 		fprintf(log_out, "%s\n\n", $$->getName().c_str());
 	}
-	| {}
+	| { }
 	;
 	
 arguments : arguments COMMA logic_expression
