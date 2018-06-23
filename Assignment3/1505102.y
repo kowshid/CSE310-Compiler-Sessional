@@ -20,7 +20,7 @@ extern int line_count;
 FILE *error_out;
 FILE *log_out;
 
-SymbolTable table(99);
+SymbolTable table(41);
 
 void yyerror(char *s)
 {
