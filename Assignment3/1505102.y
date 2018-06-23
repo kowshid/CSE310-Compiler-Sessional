@@ -9,8 +9,11 @@ using namespace std;
 
 int yyparse(void);
 int yylex(void);
-int error_count;
+int error_count = 0;
 extern FILE *yyin;
+
+string variableType;
+bool check;
 
 extern int line_count;
 
@@ -263,6 +266,8 @@ type_specifier : INT
 		SymbolInfo *temp = new SymbolInfo("int ","type_specifier");
 		$$ = temp;
 
+		variableType = "int";
+
 		fprintf(log_out,"%s\n\n",$$->getName().c_str());
 	}
  	| FLOAT
@@ -272,6 +277,8 @@ type_specifier : INT
 		SymbolInfo *temp = new SymbolInfo("float ", "type_specifier");
 		$$ = temp;
 
+		variableType = "float";
+
 		fprintf(log_out, "%s\n\n", $$->getName().c_str());
 	}
  	| VOID
@@ -280,6 +287,8 @@ type_specifier : INT
 
 		SymbolInfo *temp = new SymbolInfo("void ", "type_specifier");
 		$$ = temp;
+
+		variableType = "void";
 
 		fprintf(log_out, "%s\n\n", $$->getName().c_str());
 	}
@@ -294,6 +303,18 @@ declaration_list : declaration_list COMMA ID
 		fprintf(log_out,"%s\n\n", $$->getName().c_str());
 
 		table.insertSymbol($3->getName(), "ID", 0);
+
+		SymbolInfo *sInfo = table.srch($3->getName());
+		if(variableType != "void")
+		{
+			sInfo->varType = variableType;
+		}
+
+		else 
+		{
+			error_count++;
+			fprintf(error_out, "Error no. %d at line no. %d\nVariable type can't be void\n\n", error_count, line_count);
+		}
 
 		//table.printCur(log_out);
 	}
@@ -310,6 +331,19 @@ declaration_list : declaration_list COMMA ID
 		table.insertSymbol($3->getName(), "ID", number);
 
 		//table.printCur(log_out);
+
+		SymbolInfo *sInfo = table.srch($3->getName());
+	
+		if(variableType != "void")
+		{
+			sInfo->varType = variableType;
+		}
+
+		else 
+		{
+			error_count++;
+			fprintf(error_out, "Error no. %d at line no. %d\nVariable type can't be void\n\n", error_count, line_count);
+		}
 	}
  	| ID
 	{
@@ -321,6 +355,20 @@ declaration_list : declaration_list COMMA ID
 		fprintf(log_out,"%s\n\n", $$->getName().c_str());
 
 		table.insertSymbol($1->getName(), "ID", 0);
+
+		SymbolInfo *sInfo = table.srch($1->getName());
+	
+		if(variableType != "void")
+		{
+			sInfo->varType = variableType;
+		}
+
+		else 
+		{
+			error_count++;
+			fprintf(error_out, "Error no. %d at line no. %d\nVariable type can't be void\n\n", error_count, line_count);
+		}
+		
 
 		//table.printCur(log_out);
 	}
@@ -337,6 +385,18 @@ declaration_list : declaration_list COMMA ID
 
 		int number=atoi($3->getName().c_str());
 		table.insertSymbol($1->getName(), "ID", number);
+
+		SymbolInfo *sInfo = table.srch($1->getName());
+		if(variableType != "void")
+		{
+			sInfo->varType = variableType;
+		}
+
+		else 
+		{
+			error_count++;
+			fprintf(error_out, "Error no. %d at line no. %d\nVariable type can't be void\n\n", error_count, line_count);
+		}
 
 		//table.printCur(log_out);
 	}
@@ -474,6 +534,8 @@ variable : ID
 		SymbolInfo *temp = new SymbolInfo($1->getName(), "variable");
 		$$ = temp;
 
+		$$->varType = $1->varType;
+
 		fprintf(log_out, "%s\n\n", $$->getName().c_str());
 	} 		
 	| ID LTHIRD expression RTHIRD 
@@ -482,6 +544,14 @@ variable : ID
 	
 		SymbolInfo *temp = new SymbolInfo($1->getName() + "[" + $3->getName() + "]", "variable");
 		$$ = temp;
+
+		$$->varType = $1->varType;
+
+		if($3->varType != "int")
+		{
+			error_count++;
+			fprintf(error_out, "Error no. %d at line no. %d\nArray indexing error\n\n", error_count, line_count);
+		}
 
 		fprintf(log_out, "%s\n\n", $$->getName().c_str());
 	}
@@ -494,6 +564,9 @@ variable : ID
 		SymbolInfo *temp = new SymbolInfo($1->getName(), "expression");
 		$$ = temp;
 
+		$$->varType = $1->varType;
+
+
 		fprintf(log_out, "%s\n\n", $$->getName().c_str());
 	}
     | variable ASSIGNOP logic_expression 
@@ -502,6 +575,14 @@ variable : ID
 
 		SymbolInfo *temp = new SymbolInfo($1->getName() + " = " + $3->getName(), "expression");
 		$$ = temp;
+
+		$$->varType = $1->varType;
+
+		if($1->varType != $3->varType)
+		{
+			error_count++;
+			fprintf(error_out, "Error no. %d at line no. %d\nAssignment error\n\n", error_count, line_count);
+		}
 
 		fprintf(log_out, "%s\n\n", $$->getName().c_str());
 	}
@@ -514,6 +595,8 @@ logic_expression : rel_expression
 		SymbolInfo *temp = new SymbolInfo($1->getName(), "logic_expression");
 		$$ = temp;
 
+		$$->varType = $1->varType;
+
 		fprintf(log_out, "%s\n\n", $$->getName().c_str());
 	}
     | rel_expression LOGICOP rel_expression    
@@ -522,6 +605,8 @@ logic_expression : rel_expression
 		
 		SymbolInfo *temp = new SymbolInfo($1->getName() + $2->getName() + $3->getName(), "logic_expression");
 		$$ = temp;
+
+		$$->varType = "int";
 
 		fprintf(log_out, "%s\n\n", $$->getName().c_str());
 	}
@@ -534,6 +619,8 @@ rel_expression	: simple_expression
 		SymbolInfo *temp = new SymbolInfo($1->getName(), "rel_expression");
 		$$ = temp;
 
+		$$->varType = $1->varType;
+
 		fprintf(log_out, "%s\n\n", $$->getName().c_str());
 	}
 	| simple_expression RELOP simple_expression	
@@ -542,6 +629,8 @@ rel_expression	: simple_expression
 	
 		SymbolInfo *temp = new SymbolInfo($1->getName() + $2->getName() + $3->getName(), "rel_expression");
 		$$ = temp;
+		
+		$$->varType = "int";
 
 		fprintf(log_out, "%s\n\n", $$->getName().c_str());
 	}
@@ -554,6 +643,8 @@ simple_expression : term
 		SymbolInfo *temp = new SymbolInfo($1->getName(), "simple_expression");
 		$$ = temp;
 
+		$$->varType = $1->varType;
+
 		fprintf(log_out, "%s\n\n", $$->getName().c_str());
 	}
     | simple_expression ADDOP term 
@@ -562,6 +653,16 @@ simple_expression : term
 
 		SymbolInfo *temp = new SymbolInfo($1->getName() + $2->getName() + $3->getName(), "simple_expression");
 		$$ = temp;
+
+		if($1->varType == "float" || $3->varType == "float")
+		{
+			$$->varType = "float";
+		}
+
+		else
+		{
+			$$->varType = "int";
+		}
 
 		fprintf(log_out, "%s\n\n", $$->getName().c_str());
 	}
@@ -574,6 +675,8 @@ term :	unary_expression
 		SymbolInfo *temp = new SymbolInfo($1->getName(), "term");
 		$$ = temp;
 
+		$$->varType = $1->varType;
+
 		fprintf(log_out, "%s\n\n", $$->getName().c_str());
 	}
     |  term MULOP unary_expression
@@ -582,6 +685,16 @@ term :	unary_expression
 
 		SymbolInfo *temp = new SymbolInfo($1->getName() + $2->getName() + $3->getName(), "term");
 		$$ = temp;
+
+		if($1->varType == "float" || $3->varType == "float")
+		{
+			$$->varType = "float";
+		}
+
+		else
+		{
+			$$->varType = "int";
+		}
 
 		fprintf(log_out, "%s\n\n", $$->getName().c_str());
 	}
@@ -594,6 +707,8 @@ unary_expression : ADDOP unary_expression
 		SymbolInfo *temp = new SymbolInfo($1->getName() + $2->getName(), "unary_expression");
 		$$ = temp;
 
+		$$->varType = $2->varType;
+
 		fprintf(log_out, "%s\n\n", $$->getName().c_str());
 	}
 	| NOT unary_expression 
@@ -602,6 +717,8 @@ unary_expression : ADDOP unary_expression
 
 		SymbolInfo *temp = new SymbolInfo("!" + $2->getName(), "unary_expression");
 		$$ = temp;
+
+		$$->varType = $2->varType;
 
 		fprintf(log_out, "%s\n\n", $$->getName().c_str());
 	}
@@ -612,16 +729,20 @@ unary_expression : ADDOP unary_expression
 		SymbolInfo *temp = new SymbolInfo($1->getName(), "unary_expression");
 		$$ = temp;
 
+		$$->varType = $1->varType;
+
 		fprintf(log_out, "%s\n\n", $$->getName().c_str());
 	}
 	;
 	
-factor	: variable 
+factor : variable 
 	{
 		fprintf(log_out,"line no. %d: factor : variable\n\n",line_count);
 
 		SymbolInfo *temp = new SymbolInfo($1->getName(), "factor");
 		$$ = temp;
+
+		$$->varType = $1->varType;
 
 		fprintf(log_out, "%s\n\n", $$->getName().c_str());
 	}
@@ -632,6 +753,8 @@ factor	: variable
 		SymbolInfo *temp = new SymbolInfo($1->getName(), "factor");
 		$$ = temp;
 
+		$$->varType = $1->varType;
+
 		fprintf(log_out, "%s\n\n", $$->getName().c_str());
 	}
 	| LPAREN expression RPAREN
@@ -640,6 +763,8 @@ factor	: variable
 
 		SymbolInfo *temp = new SymbolInfo("(" + $2->getName() + ")", "factor");
 		$$ = temp;
+
+		$$->varType = $2->varType;
 
 		fprintf(log_out, "%s\n\n", $$->getName().c_str());
 	}
@@ -650,6 +775,8 @@ factor	: variable
 		SymbolInfo *temp = new SymbolInfo($1->getName(), "factor");
 		$$ = temp;
 
+		$$->varType = "int";
+
 		fprintf(log_out, "%s\n\n", $$->getName().c_str());
 	} 
 	| CONST_FLOAT
@@ -658,6 +785,8 @@ factor	: variable
 
 		SymbolInfo *temp = new SymbolInfo($1->getName(), "factor");
 		$$ = temp;
+
+		$$->varType = "float";
 
 		fprintf(log_out, "%s\n\n", $$->getName().c_str());
 	}
@@ -668,6 +797,8 @@ factor	: variable
 		SymbolInfo *temp = new SymbolInfo($1->getName() + "++", "factor");
 		$$ = temp;
 
+		$$->varType = $1->varType;
+
 		fprintf(log_out, "%s\n\n", $$->getName().c_str());
 	}
 	| variable DECOP
@@ -676,6 +807,8 @@ factor	: variable
 
 		SymbolInfo *temp = new SymbolInfo($1->getName() + "--", "factor");
 		$$ = temp;
+
+		$$->varType == $1->varType;
 
 		fprintf(log_out, "%s\n\n", $$->getName().c_str());
 	}
