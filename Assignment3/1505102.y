@@ -130,6 +130,7 @@ func_declaration : type_specifier ID LPAREN parameter_list RPAREN SEMICOLON
 		fprintf(log_out, "%s\n\n", $$->getName().c_str());
 
 		$2->returnType = $1->varType;
+		//cout << $2->getName() << " " << $2->returnType << endl;
 
 		check = table.insertSymbol($2->getName(), "ID", 0);
 
@@ -150,9 +151,10 @@ func_declaration : type_specifier ID LPAREN parameter_list RPAREN SEMICOLON
 		SymbolInfo *temp = new SymbolInfo(line, "func_declaration");
 		$$ = temp;
 
-		$2->returnType = $1->varType;
-
 		fprintf(log_out, "%s\n\n", $$->getName().c_str());
+
+		$2->returnType = $1->varType;
+		//cout << $2->getName() << " " << $2->returnType << endl;
 
 		check = table.insertSymbol($2->getName(), "ID", 0);
 
@@ -174,13 +176,14 @@ func_definition : type_specifier ID LPAREN parameter_list RPAREN {table.enterSco
 		SymbolInfo *temp = new SymbolInfo(line, "func_definition");
 		$$ = temp;
 
+		$2->returnType = $1->varType;
+		//cout << $2->getName() << " " << $2->returnType << endl;
+
 		fprintf(log_out, "%s\n\n", $$->getName().c_str());
 
-		$2->returnType = $1->varType;
-
-		for(int i=0;i<paramList.size();i++)
+		for(int i = 0; i < paramList.size(); i++)
 		{
-			table.insertSymbol(paramList[i]->getName(),"ID",0);
+			table.insertSymbol(paramList[i]->getName(), "ID", 0);
 		}
 
 		paramList.clear();
@@ -188,9 +191,9 @@ func_definition : type_specifier ID LPAREN parameter_list RPAREN {table.enterSco
 		table.printCur(log_out);
 		table.removeScope();
 
-		SymbolInfo *temp2 = table.srch($2->getName());
+		SymbolInfo *sInfo = table.srch($2->getName());
 
-		if(temp2 == NULL)
+		if(sInfo == NULL)
 		{
 			table.insertSymbol($2->getName(), "ID", 0);
 		}
@@ -210,6 +213,7 @@ func_definition : type_specifier ID LPAREN parameter_list RPAREN {table.enterSco
 		$$ = temp;
 
 		$2->returnType = $1->varType;
+		//cout << $2->getName() << " " << $2->returnType << endl;		
 
 		table.insertSymbol($2->getName(), "ID", 0);
 
@@ -235,6 +239,8 @@ parameter_list : parameter_list COMMA type_specifier ID
 		$$ = temp;
 
 		$4->varType = variableType;
+		$4->returnType = $3->returnType;
+		
 		paramList.push_back($4);
 
 		fprintf(log_out, "%s\n\n", $$->getName().c_str());
@@ -256,7 +262,8 @@ parameter_list : parameter_list COMMA type_specifier ID
 
 		$$->setName($$->getName() + $2->getName());
 
-		$2->varType = variableType;
+		$2->varType = $1->varType;
+		
 		paramList.push_back($2);
 
 		fprintf(log_out, "%s\n\n", $$->getName().c_str());
@@ -268,7 +275,7 @@ parameter_list : parameter_list COMMA type_specifier ID
 		SymbolInfo *temp = new SymbolInfo($1->getName(), "parameter_list");
 		$$ = temp;
 
-		$1->varType=variableType;
+		//$1->varType = variableType;
 		fprintf(log_out, "%s\n\n", $$->getName().c_str());
 	}
  	;
@@ -309,10 +316,12 @@ type_specifier : INT
 	{
 		fprintf(log_out,"line no. %d: type_specifier : INT\n\n",line_count);
 
-		SymbolInfo *temp = new SymbolInfo("int ","type_specifier");
+		SymbolInfo *temp = new SymbolInfo("int","type_specifier");
 		$$ = temp;
 
 		variableType = "int";
+		
+		$$->varType = "int";
 
 		fprintf(log_out,"%s\n\n",$$->getName().c_str());
 	}
@@ -324,6 +333,8 @@ type_specifier : INT
 		$$ = temp;
 
 		variableType = "float";
+		
+		$$->varType = "float";
 
 		fprintf(log_out, "%s\n\n", $$->getName().c_str());
 	}
@@ -335,6 +346,8 @@ type_specifier : INT
 		$$ = temp;
 
 		variableType = "void";
+		
+		$$->varType = "void";
 
 		fprintf(log_out, "%s\n\n", $$->getName().c_str());
 	}
@@ -357,6 +370,7 @@ declaration_list : declaration_list COMMA ID
 		}
 
 		SymbolInfo *sInfo = table.srch($3->getName());
+		
 		if(variableType != "void")
 		{
 			sInfo->varType = variableType;
@@ -458,6 +472,7 @@ declaration_list : declaration_list COMMA ID
 		}
 
 		SymbolInfo *sInfo = table.srch($1->getName());
+		
 		if(variableType != "void")
 		{
 			sInfo->varType = variableType;
@@ -574,8 +589,6 @@ statement : var_declaration
 		SymbolInfo *temp = new SymbolInfo("return " + $2->getName() + ";", "statement");
 		$$ = temp;
 
-		cout << $2->varType << endl;
-
 		fprintf(log_out, "%s\n\n", $$->getName().c_str());
 	}
 	;
@@ -607,8 +620,12 @@ variable : ID
 		SymbolInfo *temp = new SymbolInfo($1->getName(), "variable");
 		$$ = temp;
 
-		$$->varType = $1->varType;
+		symbolInfo = table.srch($1->getName());
 
+		if(symbolInfo != NULL) $$->varType = symbolInfo->varType;
+		
+		//cout<<$$->getName()<<"  hg  "<<$$->varType<<endl;
+ 
 		fprintf(log_out, "%s\n\n", $$->getName().c_str());
 	} 		
 	| ID LTHIRD expression RTHIRD 
@@ -619,11 +636,12 @@ variable : ID
 		$$ = temp;
 
 		$$->varType = $1->varType;
-
+		
 		if($3->varType != "int")
 		{
 			error_count++;
 			fprintf(error_out, "Error no. %d at line no. %d\nArray indexing error\n\n", error_count, line_count);
+			//cout << $3->getName() << " \'" << $3->varType << "\' id:" << $1->getName() << endl ;
 		}
 
 		fprintf(log_out, "%s\n\n", $$->getName().c_str());
@@ -648,13 +666,35 @@ variable : ID
 		SymbolInfo *temp = new SymbolInfo($1->getName() + " = " + $3->getName(), "expression");
 		$$ = temp;
 
-		$$->varType = $1->varType;
+		string t = "";
+		for(int i = 0; i < $1->getName().length(); i++)
+		{
+			if($1->getName()[i] == '[') break;
+			
+			else
+			{
+				t.push_back($1->getName()[i]);
+			}
+		}
 
-		if($1->varType != $3->varType)
+		SymbolInfo *sInfo = table.srch(t);
+
+		if(sInfo == 0)
 		{
 			error_count++;
-			fprintf(error_out, "Error no. %d at line no. %d\nAssignment error\n\n", error_count, line_count);
+			fprintf(log_out,"variable %s not declared\n",t.c_str());
 		}
+
+		else
+		{
+			if(sInfo->varType != $3->varType)
+			{
+				error_count++;
+				fprintf(error_out, "Error no. %d at line no. %d\nAssignment error\n\n", error_count, line_count);
+			}
+		}
+
+		$$->varType = $1->varType;
 
 		fprintf(log_out, "%s\n\n", $$->getName().c_str());
 	}
@@ -827,8 +867,6 @@ factor : variable
 
 		symbolInfo = table.srch($1->getName());
 		$$->varType = symbolInfo->returnType;
-
-		cout << $1->getName() << " " << $1->varType << endl;
 
 		fprintf(log_out, "%s\n\n", $$->getName().c_str());
 	}
