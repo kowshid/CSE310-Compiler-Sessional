@@ -2,6 +2,7 @@
 #include <string>
 #include <stdlib.h>
 #include <iostream>
+#include <vector>
 
 using namespace std;
 
@@ -9,16 +10,22 @@ class SymbolInfo
 {
     string name;
     string type;
-    int sizeArr;
 
 public:
+    
 
     SymbolInfo *nxt;
+    string varType;
+    string returnType;
+    int sizeArr;
+    vector <string> parameter;
 
     SymbolInfo()
     {
         nxt = NULL;
         sizeArr = 0;
+        varType = " ";
+        returnType = " ";
     }
 
     SymbolInfo(string noun, string kind)
@@ -27,6 +34,8 @@ public:
         type = kind;
         nxt = NULL;
         sizeArr = 0;
+        varType = " ";
+        returnType = " ";
     }
 
     string getName()
@@ -119,6 +128,7 @@ public:
     bool insert(string noun, string kind, int sz)
     {
         SymbolInfo *temp = new SymbolInfo(noun, kind);
+        
         parent = lookUp(noun);
 
         if (parent != NULL)
@@ -228,7 +238,7 @@ public:
 		        head = head->nxt;
             }
 
-            cout << endl;
+            //cout << endl;
         }
 
         fprintf(f,"\n");
