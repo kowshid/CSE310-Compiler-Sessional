@@ -1,0 +1,67 @@
+;PROCEDURE FOR PRINTING
+PRINT PROC
+    PUSH AX
+    PUSH BX
+    PUSH CX
+    PUSH DX
+    MOV AH, 2
+    MOV DL, 10
+    INT 21h
+    MOV DL, 13
+    INT 21h
+   
+    MOV COUNT, 0
+    MOV INDEX, 0
+   
+    ITERATE1:    
+   
+    MOV BX, INDEX
+    MOV AX, ARRAY[BX]
+   
+    TEST AX, 8000h
+    JZ DIVIDE1
+    NEG AX
+    MOV CX, AX
+    MOV AH, 2
+    MOV DL, '-'
+    INT 21h  
+    MOV AX, CX
+   
+    DIVIDE1:
+    MOV DX, 0
+    MOV BX, 10
+    DIV BX
+    PUSH DX
+   
+    INC COUNT
+    CMP AX, 0
+    JNE DIVIDE1  
+   
+    EXTRACT1:
+    POP CX
+    ADD CX, 48
+    MOV AH, 2
+    MOV DL, CL
+    INT 21h
+   
+    DEC COUNT
+    CMP COUNT, 0
+    JNE EXTRACT1      
+   
+    MOV AH, 2
+    MOV DL, 32
+    INT 21h
+   
+    DEC AEC
+    ADD INDEX, 2
+    CMP AEC, 0
+    JNE ITERATE1
+   
+    POP DX
+    POP CX
+    POP BX
+    POP AX    
+   
+    RET
+       
+PRINT ENDP
